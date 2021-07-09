@@ -120,7 +120,25 @@ public:
             response.success = false;
             return false;
         }
-        
+        ros::NodeHandle private_nh("~");
+        private_nh.param("robot_frame", robot_frame_, std::string("base_link"));
+        private_nh.param("world_frame", world_frame_, std::string("map"));
+        std::string filename = "";
+        private_nh.param("filename", filename, filename);
+        if(filename != ""){
+            ROS_INFO_STREAM("Read waypoints data from " << filename);
+            if(!readFile(filename)) {
+                ROS_ERROR("Failed loading waypoints file");
+            } else {
+                last_waypoint_ = waypoints_.poses.end()-2;
+                finish_pose_ = waypoints_.poses.end()-1;
+                computeWpOrientation();
+            }
+            current_waypoint_ = waypoints_.poses.begin();
+        } else {
+            ROS_ERROR("waypoints file doesn't have name");
+        }
+
         std_srvs::Empty empty;
         while(!clear_costmaps_srv_.call(empty)) {
             ROS_WARN("Resend clear costmap service");
