@@ -8,6 +8,7 @@
 typedef actionlib::SimpleActionServer<fulanghua_action::special_moveAction> Server;
 
 bool start = false;
+double wait_time = 0;
 int status_mg400_01 = 0;
 int status_mg400_02 = 0;
 std::string which_mg = "";
@@ -16,8 +17,10 @@ void mg400_01Callback(const cs_signal::WpRobotStatus& msg){
     int new_status = msg.robotStatus;
     if(which_mg == "mg400_01"){
         ROS_INFO("%s : %d",which_mg.c_str(), new_status);
-        if((status_mg400_01 > 1) && new_status == 1){
-            start = true;
+        if (wait_time > 20){
+            if(((status_mg400_01 > 1) && new_status == 1) || new_status == 0){
+                start = true;
+            }
         }
     }
     status_mg400_01 = new_status;
@@ -27,8 +30,10 @@ void mg400_02Callback(const cs_signal::WpRobotStatus& msg){
     int new_status = msg.robotStatus;
     if(which_mg == "mg400_02"){
         ROS_INFO("%s : %d",which_mg.c_str(), new_status);
-        if((status_mg400_02 > 1) && new_status == 1){
-            start = true;
+        if (wait_time > 20){
+            if(((status_mg400_02 > 1) && new_status == 1) || new_status == 0){
+                start = true;
+            }
         }
     }
     status_mg400_02 = new_status;
@@ -36,9 +41,9 @@ void mg400_02Callback(const cs_signal::WpRobotStatus& msg){
 
 void nextWpCallback(const orne_waypoints_msgs::Pose &msg){
     std::string wp = msg.position.action;
-    if(wp =="align1" && status_mg400_01 < 2){
+    if (wp =="align1" && status_mg400_01 < 2){
         which_mg = "mg400_01";
-    }else if(wp =="align2"&& status_mg400_02 < 2){
+    }else if (wp =="align2" && status_mg400_02 < 2){
         which_mg = "mg400_02";
     }else{
         which_mg = "";
@@ -62,8 +67,10 @@ int main(int argc, char** argv){
     while (ros::ok()){
         if (server.isNewGoalAvailable()){
             current_goal = server.acceptNewGoal(); 
+            start_time = ros::Time::now();
         }
         if(server.isActive()){
+            wait_time = (ros::Time::now() - start_time).toSec();
             if(server.isPreemptRequested()){
                 server.setPreempted(); // cancel the goal
                 ROS_WARN("wait: Preemmpt Goal\n");
@@ -71,10 +78,12 @@ int main(int argc, char** argv){
                 if (start){
                     server.setSucceeded();
                     start = false;
+                }else if (wait_time < 20){
+                    ROS_INFO("wait 20 seconds : %0.1lf", wait_time);
                 }else{
                     ROS_INFO("wait for mg400");
                     ros::Duration(1).sleep();
-                }  
+                }
             }
         }
         ros::spinOnce();

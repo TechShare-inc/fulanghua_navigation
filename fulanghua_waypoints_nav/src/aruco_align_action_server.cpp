@@ -127,15 +127,15 @@ class AR_ALIGN {
     }
 
     void escape(){
-        for(int i=0; i < 20; i++){
-            twist.linear.x = 0.3;
-            twist.angular.z = -0.7;
+        for(int i=0; i < 30; i++){
+            twist.linear.x = 0.2;
+            twist.angular.z = -0.5;
             cmd_vel_pub.publish(twist);
             ros::Duration(0.1).sleep();
         }
-        for(int i=0; i < 20; i++){
+        for(int i=0; i < 30; i++){
             twist.linear.x = 0.1;
-            twist.angular.z = 0.6;
+            twist.angular.z = 0.4;
             cmd_vel_pub.publish(twist);
             ros::Duration(0.1).sleep();
         }
