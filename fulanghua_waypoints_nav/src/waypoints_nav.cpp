@@ -713,6 +713,7 @@ public:
         rate_.sleep();
         }  
         if((dest->position.x != 0 && dest->position.y != 0) && (dest->orientation.x != 0 && dest->orientation.y != 0)){
+            ROS_INFO("call next action");
             actionServiceCall(makeQueue("next"));
             printf("Action finished\n");
         }

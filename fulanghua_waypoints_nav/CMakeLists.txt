@@ -50,6 +50,7 @@ add_executable(waypoints_nav src/waypoints_nav.cpp)
 add_executable(adv_action_server src/adv_action_server.cpp)
 add_executable(rotate_action_server src/rotate_action_server.cpp)
 add_executable(battery_check_server src/battery_check_server.cpp)
+add_executable(wait_server src/wait_server.cpp)
 # add_executable(go1_cmd_server src/go1_high_command.cpp)
 add_dependencies(waypoints_nav ${fulanghua_srvs_EXPORTED_TARGETS})
 
@@ -85,6 +86,10 @@ target_link_libraries(rotate_action_server
 )
 
 target_link_libraries(battery_check_server
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(wait_server
   ${catkin_LIBRARIES}
 )
 

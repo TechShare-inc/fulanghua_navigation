@@ -71,7 +71,7 @@
     <param name="Ki" value="0.001" />
     <param name="Kpang" value="1.8" />
     <param name="adjust_speed" value="$(arg min_vel)"/>
-    <param name="offset_fixed_x" value="0.45"/>
+    <param name="offset_fixed_x" value="0.50"/>
     <param name="offset_fixed_y" value="0.00"/>
     <param name="offset_fixed_z" value="$(arg offset_fixed_z)"/>
     <param name="calibration_path" value="$(arg calibration_path)/camera_ext.yaml" />
@@ -83,8 +83,8 @@
     <param name="charge_threshold_higher"  value="$(arg charge_threshold_higher)" />
 </node>
 
-<include file="$(find sound_play)/soundplay_node.launch"></include>
+<node name="wait_server" pkg="fulanghua_waypoints_nav" type="wait_server" output="screen"></node>
 
-<node name="wp_robot_status" pkg="cs_signal" type="wp_robot_status_pub" />
+<include file="$(find sound_play)/soundplay_node.launch"></include>
 
 </launch>

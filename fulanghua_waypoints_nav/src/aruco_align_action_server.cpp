@@ -28,7 +28,8 @@ class AR_ALIGN {
     AR_ALIGN()
         : rate(10),
           server(nh, "ar_align", false),
-          rotate_client("rotate", true) {
+          rotate_client("rotate", true),
+          wait_client("wait", true) {
         ros::NodeHandle private_nh("~");
         private_nh.param("Kp", Kp, 0.03);
         private_nh.param("Ki", Ki, 0.003);
@@ -96,6 +97,50 @@ class AR_ALIGN {
         }
     }
 
+    bool wait(){
+        if(wait_client.isServerConnected()){
+              bool state =true;
+              fulanghua_action::special_moveGoal current_goal;
+              current_goal.duration = INT_MAX-1;
+              for (int i = 0; i < 5; i++)
+              {
+                wait_client.sendGoal(current_goal);
+                ROS_INFO("send goal to wait_server");
+                actionlib::SimpleClientGoalState client_state = wait_client.getState();
+                while(client_state !=actionlib::SimpleClientGoalState::SUCCEEDED){
+                  client_state = wait_client.getState();
+                  if (client_state == actionlib::SimpleClientGoalState::PREEMPTED
+                    || client_state == actionlib::SimpleClientGoalState::ABORTED){
+                    ROS_WARN("failed %d times\n", i+1);
+                    state = false;
+                    break;
+                  }
+                  ros::Duration(1).sleep();
+                }
+                if (state){
+                    break;
+                }
+              }
+              return true;
+              ros::Duration(1).sleep();
+        }
+    }
+
+    void escape(){
+        for(int i=0; i < 20; i++){
+            twist.linear.x = 0.3;
+            twist.angular.z = -0.7;
+            cmd_vel_pub.publish(twist);
+            ros::Duration(0.1).sleep();
+        }
+        for(int i=0; i < 20; i++){
+            twist.linear.x = 0.1;
+            twist.angular.z = 0.6;
+            cmd_vel_pub.publish(twist);
+            ros::Duration(0.1).sleep();
+        }
+    }
+
     bool adjustPosition(double &x, double &y, double &z, double &ang) {
         Done_x = false;
         ros::Time t_stop;
@@ -126,6 +171,7 @@ class AR_ALIGN {
         if (Done_x) {
             // Done_z = false;
             // move it to the center
+            wait();
             ROS_INFO("aligmnent is done!");
             double angle = 0;
             offset_I = 0;
@@ -151,37 +197,6 @@ class AR_ALIGN {
         }
     }
 
-    bool rotate_action(double &angle_) {
-        bool state = true;
-        // rotate the robot so that realsense can see it (best effort)
-        if (rotate_client.isServerConnected()) {
-            fulanghua_action::special_moveGoal current_goal;
-            current_goal.duration = 20;
-            current_goal.angle = angle_;
-            for (int i = 0; i < 5; i++) {
-                state = true;
-                rotate_client.sendGoal(current_goal);
-                actionlib::SimpleClientGoalState client_state =
-                    rotate_client.getState();
-                while (client_state !=
-                       actionlib::SimpleClientGoalState::SUCCEEDED) {
-                    client_state = rotate_client.getState();
-                    if (client_state ==
-                            actionlib::SimpleClientGoalState::PREEMPTED ||
-                        client_state ==
-                            actionlib::SimpleClientGoalState::ABORTED) {
-                        ROS_WARN("failed %d times\n", i + 1);
-                        state = false;
-                        break;
-                    }
-                    ros::Duration(0.1).sleep();
-                }
-                if (state) {
-                    break;
-                }
-            }
-        }
-    }
 
     void put_commnets(double &x, double &y, double &z, double &_angle) {
         vector_to_marker.str(std::string());
@@ -218,6 +233,8 @@ class AR_ALIGN {
         server;  // make a server
     actionlib::SimpleActionClient<fulanghua_action::special_moveAction>
         rotate_client;  // for rotation client
+    actionlib::SimpleActionClient<fulanghua_action::special_moveAction>
+        wait_client;
     cv::Mat src, camera_matrix, dist_coeffs;
     double offset_I = 0;
     double Kp = 0;  // proportional coefficient
@@ -269,8 +286,9 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "aruco_align_server");
     AR_ALIGN align;
     bool visualize = true;
+    bool done_align;
     double y = 0;
-    ros::Time t;
+    ros::Time t, t_start_wait;
     while (ros::ok()) {
         if (align.server.isNewGoalAvailable()) {
             align.current_goal = align.server.acceptNewGoal();
@@ -278,7 +296,8 @@ int main(int argc, char **argv) {
             align._counter = 0;
             visualize = true;
             align.Done_z = false;
-            t = ros::Time::now();
+            done_align = false;
+            
         }
         if (align.server.isActive()) {
             if (align.server.isPreemptRequested()) {
@@ -290,7 +309,13 @@ int main(int argc, char **argv) {
                     ros::Time::now()) {
                     align.server.setAborted();  // abort it
                 } else {
-                    if (!align.src.empty()) {
+                    if (done_align){ /*after calibration's done, wait for 20 seconds*/
+                        done_align = false;
+                        align.server.setSucceeded();
+                        ROS_INFO("AR align: Succeeded!");
+                        visualize = false;
+                        align.escape();
+                    }else if (!align.src.empty()) {/*if camera iamges are received*/
                         cv::aruco::detectMarkers(
                             align.src, align.dictionary, align.corners,
                             align.ids);  // detecting a marker
@@ -299,8 +324,8 @@ int main(int argc, char **argv) {
                             align.corners, 0.05, align.camera_matrix,
                             align.dist_coeffs, rvecs,
                             tvecs);  // gettting x,y,z and angle
-                        if (align.ids.size() > 0) {
-                            y = tvecs[0](1);
+                        if (align.ids.size() > 0) {/*if a marker is detected*/
+                            t = ros::Time::now();
                             cv::drawFrameAxes(
                                 align.src, align.camera_matrix,
                                 align.dist_coeffs, rvecs[0], tvecs[0],
@@ -309,16 +334,14 @@ int main(int argc, char **argv) {
                             align.put_commnets(tvecs[0](0), tvecs[0](1),
                                                tvecs[0](2),
                                                _angle);  // putting texst on src
-
                             if (align.adjustPosition(
                                     tvecs[0](0), tvecs[0](1), tvecs[0](2),
-                                    _angle)) {  // alignusting the positiion of
-                                                // the mobile robot
-                                align.server.setSucceeded();
-                                ROS_INFO("AR align: Succeeded!");
+                                    _angle)) {  /*align the potision to the marker*/
+                                done_align = true; // alignment's done here
                                 visualize = false;
                             }
-                        } else {
+                            
+                        } else {/*if the robot cannot see a marker for 3 seconds, this action is aborted.*/
                             double t_preempt = (ros::Time::now() - t).toSec();
                             ROS_INFO("Cannot see the marker for %lf seconds",
                                      t_preempt);
@@ -328,6 +351,7 @@ int main(int argc, char **argv) {
                                 ROS_WARN("AR align: aborted Goal\n");
                             }
                         }
+                        t_start_wait = ros::Time::now();
                         cv::imshow("src", align.src);
                         cv::waitKey(3);
                         if (!visualize) cv::destroyAllWindows();

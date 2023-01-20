@@ -254,7 +254,7 @@ class SpecialMove {
         bool state = true;
         if (ar_align_client.isServerConnected() && state) {
             fulanghua_action::special_moveGoal current_goal;
-            current_goal.duration = 30;
+            current_goal.duration = INT_MAX -1;
             ROS_INFO("Alignment started");
             for (int i = 0; i < 3; i++) {
                 state = true;
@@ -270,7 +270,7 @@ class SpecialMove {
                         state = true;
                         break;
                     }
-                     if (client_state !=
+                     if (client_state ==
                             actionlib::SimpleClientGoalState::PREEMPTED) {
                         ROS_WARN("preemped %d times\n", i + 1);
                         state = false;
@@ -449,11 +449,10 @@ int main(int argc, char** argv) {
                 printf("Preempt Goal\n");
             } else {
                 geometry_msgs::Twist twist;
-                if (start_time + ros::Duration(current_goal->duration) <
-                    ros::Time::now()) {
-                    SpM.server.setPreempted();
-                    printf("Preempt Goal\n");
-                    // server.setAborted();
+                if (start_time + ros::Duration(current_goal->duration) < ros::Time::now()){
+                    // ros::Time::now()) {
+                    // SpM.server.setPreempted();
+                    // printf("Preempt Goal\n");
                 } else {
                     fulanghua_action::special_moveFeedback feedback;
                     feedback.rate = (ros::Time::now() - start_time).toSec() /
@@ -516,7 +515,7 @@ int main(int argc, char** argv) {
                         printf("take photo\n");
                     } else if (current_goal->command == "videostream") {
                         printf(" watch video\n");
-                    } else if (current_goal->command == "align") {
+                    } else if (current_goal->command == "align1" || current_goal->command == "align2") {
                         SpM.AlignmentFunction();
                     }
                 }
