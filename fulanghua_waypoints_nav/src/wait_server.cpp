@@ -17,7 +17,7 @@ void mg400_01Callback(const cs_signal::WpRobotStatus& msg){
     int new_status = msg.robotStatus;
     if(which_mg == "mg400_01"){
         ROS_INFO("%s : %d",which_mg.c_str(), new_status);
-        if (wait_time > 20){
+        if (wait_time > 30){
             if(((status_mg400_01 > 1) && new_status == 1) || new_status == 0){
                 start = true;
             }
@@ -30,7 +30,7 @@ void mg400_02Callback(const cs_signal::WpRobotStatus& msg){
     int new_status = msg.robotStatus;
     if(which_mg == "mg400_02"){
         ROS_INFO("%s : %d",which_mg.c_str(), new_status);
-        if (wait_time > 20){
+        if (wait_time > 30){
             if(((status_mg400_02 > 1) && new_status == 1) || new_status == 0){
                 start = true;
             }
@@ -78,8 +78,8 @@ int main(int argc, char** argv){
                 if (start){
                     server.setSucceeded();
                     start = false;
-                }else if (wait_time < 20){
-                    ROS_INFO("wait 20 seconds : %0.1lf", wait_time);
+                }else if (wait_time < 30){
+                    ROS_INFO("wait 30 seconds : %0.1lf", wait_time);
                 }else{
                     ROS_INFO("wait for mg400");
                     ros::Duration(1).sleep();
