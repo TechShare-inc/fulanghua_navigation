@@ -220,7 +220,7 @@ public:
         auto ranges = msg.ranges;
         int obs_num = 0;
         for (int i = 0; i < ranges.size(); i++) {
-            if (ranges[i] > 0.05 && ranges[i] < 0.25) {
+            if (ranges[i] > 0.05 && ranges[i] < 0.18) {
                 obs_num++;
             }
         }

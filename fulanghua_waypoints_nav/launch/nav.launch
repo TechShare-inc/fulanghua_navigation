@@ -67,12 +67,12 @@
 <node name="ar_align_server" pkg="fulanghua_waypoints_nav" type="aruco_align_server" output="screen">
     <param name="cmd_vel"  value="$(arg cmd_vel)" />
     <param name="image_topic" value="$(arg image_topic)"/>
-    <param name="Kp"  value="0.30" />
-    <param name="Ki" value="0.001" />
+    <param name="Kp"  value="0.28" />
+    <param name="Ki" value="0.0007" />
     <param name="Kpang" value="1.8" />
     <param name="adjust_speed" value="$(arg min_vel)"/>
-    <param name="offset_fixed_x" value="0.38"/>
-    <param name="offset_fixed_y" value="0.03"/>
+    <param name="offset_fixed_x" value="0.36"/>
+    <param name="offset_fixed_y" value="0.00"/>
     <param name="offset_fixed_z" value="$(arg offset_fixed_z)"/>
     <param name="calibration_path" value="$(arg calibration_path)/camera_ext.yaml" />
 </node>

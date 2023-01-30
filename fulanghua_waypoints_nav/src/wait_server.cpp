@@ -12,14 +12,25 @@ double wait_time = 0;
 int status_mg400_01 = 0;
 int status_mg400_02 = 0;
 std::string which_mg = "";
+ros::Time start_time;
+int align_fail = 0;
 
 void mg400_01Callback(const cs_signal::WpRobotStatus& msg){
     int new_status = msg.robotStatus;
     if(which_mg == "mg400_01"){
-        ROS_INFO("%s : %d",which_mg.c_str(), new_status);
-        if (wait_time > 30){
-            if(((status_mg400_01 > 1) && new_status == 1) || new_status == 0){
+        ROS_INFO("%s : %d, wait time : %0.1lf",which_mg.c_str(), new_status, wait_time);
+        if (wait_time > 45){
+            if((status_mg400_01 > 1) && new_status == 1){
                 start = true;
+                start_time = ros::Time::now();
+            }
+            if (new_status == 0 || status_mg400_01 == 0){
+                align_fail++;
+                ROS_INFO("align fail : %d", align_fail);
+            }
+            if (align_fail > 10){
+                start = true;
+                align_fail = 0;
             }
         }
     }
@@ -29,10 +40,19 @@ void mg400_01Callback(const cs_signal::WpRobotStatus& msg){
 void mg400_02Callback(const cs_signal::WpRobotStatus& msg){
     int new_status = msg.robotStatus;
     if(which_mg == "mg400_02"){
-        ROS_INFO("%s : %d",which_mg.c_str(), new_status);
-        if (wait_time > 30){
-            if(((status_mg400_02 > 1) && new_status == 1) || new_status == 0){
+        ROS_INFO("%s : %d, wait time : %0.1lf",which_mg.c_str(), new_status, wait_time);
+        if (wait_time > 45){
+            if((status_mg400_02 > 1) && new_status == 1){
                 start = true;
+                start_time = ros::Time::now();
+            }
+            if (new_status == 0 || status_mg400_02 == 0){
+                align_fail++;
+                ROS_INFO("align fail : %d", align_fail);
+            }
+            if (align_fail > 10){
+                start = true;
+                align_fail = 0;
             }
         }
     }
@@ -55,13 +75,13 @@ int main(int argc, char** argv){
 
     ros::NodeHandle nh;
     Server server(nh, "wait", false);
-    ros::Subscriber mg400_01_sub = nh.subscribe("/mg400_01/wp_robot_status", 100, mg400_01Callback);
-    ros::Subscriber mg400_02_sub = nh.subscribe("/mg400_01/wp_robot_status", 100, mg400_02Callback);
-    ros::Subscriber next_wp_sub = nh.subscribe("/next_waypoint", 100, nextWpCallback);
+    ros::Subscriber mg400_01_sub = nh.subscribe("/mg400_01/wp_robot_status", 10000, mg400_01Callback);
+    ros::Subscriber mg400_02_sub = nh.subscribe("/mg400_02/wp_robot_status", 10000, mg400_02Callback);
+    ros::Subscriber next_wp_sub = nh.subscribe("/next_waypoint", 10000, nextWpCallback);
 
     ros::Rate rate(10);
     fulanghua_action::special_moveGoalConstPtr current_goal;
-    ros::Time wait_start, start_time;
+    ros::Time wait_start;
 
     server.start();
     while (ros::ok()){
@@ -78,8 +98,8 @@ int main(int argc, char** argv){
                 if (start){
                     server.setSucceeded();
                     start = false;
-                }else if (wait_time < 30){
-                    ROS_INFO("wait 30 seconds : %0.1lf", wait_time);
+                }else if (wait_time < 45){
+                    ROS_INFO("wait 45 seconds : %0.1lf", wait_time);
                 }else{
                     ROS_INFO("wait for mg400");
                     ros::Duration(1).sleep();

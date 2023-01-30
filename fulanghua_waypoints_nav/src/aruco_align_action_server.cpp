@@ -86,7 +86,7 @@ class AR_ALIGN {
         auto ranges = msg.ranges;
         int obs_num = 0;
         for (int i = 0; i < ranges.size() / 3; i++) {
-            if (ranges[i] > 0.05 && ranges[i] < 0.25) {
+            if (ranges[i] > 0.05 && ranges[i] < 0.18) {
                 obs_num++;
             }
         }
@@ -127,13 +127,13 @@ class AR_ALIGN {
     }
 
     void escape(){
-        for(int i=0; i < 30; i++){
+        for(int i=0; i < 25; i++){
             twist.linear.x = 0.2;
             twist.angular.z = -0.5;
             cmd_vel_pub.publish(twist);
             ros::Duration(0.1).sleep();
         }
-        for(int i=0; i < 30; i++){
+        for(int i=0; i < 25; i++){
             twist.linear.x = 0.1;
             twist.angular.z = 0.4;
             cmd_vel_pub.publish(twist);
