@@ -49,19 +49,14 @@ add_executable(waypoints_saver src/waypoints_saver.cpp)
 add_executable(waypoints_nav src/waypoints_nav.cpp)
 add_executable(adv_action_server src/adv_action_server.cpp)
 add_executable(rotate_action_server src/rotate_action_server.cpp)
-add_executable(battery_check_server src/battery_check_server.cpp)
 add_executable(wait_server src/wait_server.cpp)
 # add_executable(go1_cmd_server src/go1_high_command.cpp)
 add_dependencies(waypoints_nav ${fulanghua_srvs_EXPORTED_TARGETS})
-
-add_executable(aruco_detect_server src/aruco_detect_action_server.cpp)
-target_compile_options(aruco_detect_server PRIVATE ${OpenMP_FLAGS})
 
 add_executable(aruco_align_server src/aruco_align_action_server.cpp)
 target_compile_options(aruco_align_server PRIVATE ${OpenMP_FLAGS})
 
 add_dependencies(aruco_align_server ${catkin_EXPORTED_TARGETS})
-add_dependencies(aruco_detect_server ${catkin_EXPORTED_TARGETS})
 add_dependencies(adv_action_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
@@ -85,28 +80,14 @@ target_link_libraries(rotate_action_server
   ${catkin_LIBRARIES}
 )
 
-target_link_libraries(battery_check_server
-  ${catkin_LIBRARIES}
-)
-
 target_link_libraries(wait_server
   ${catkin_LIBRARIES}
 )
-
- target_link_libraries(aruco_detect_server 
- ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} 
- ${CMAKE_THREAD_LIBS_INIT} ${OpenMP_LIBS}
- )
 
 target_link_libraries(aruco_align_server 
 ${OpenCV_LIBRARIES} ${catkin_LIBRARIES} 
 ${CMAKE_THREAD_LIBS_INIT} ${OpenMP_LIBS}
 )
-
-
-# target_link_libraries(go1_cmd_server
-#   ${catkin_LIBRARIES}
-# )
 
 
 

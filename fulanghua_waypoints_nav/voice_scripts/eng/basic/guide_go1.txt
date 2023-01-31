@@ -1,1 +1,0 @@
-Hello! This is Go one. I will show around this floor.

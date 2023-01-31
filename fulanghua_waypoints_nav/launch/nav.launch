@@ -27,8 +27,6 @@
   <param name="amcl_filename" value="$(arg amcl_filename)"/>
   <param name="cmd_vel"  value="$(arg cmd_vel)" />
   <param name="robot_name"  value="$(arg robot_name)" />
-  <param name="charge_threshold_lower"  value="$(arg charge_threshold_lower)" />
-  <param name="charge_threshold_higher"  value="$(arg charge_threshold_higher)" />
 </node>
   
 <node name="action_server" pkg="fulanghua_waypoints_nav" type="adv_action_server" output="screen">
@@ -38,30 +36,13 @@
     <param name="max_vel"  value="$(arg max_vel)" />
     <param name="min_vel"  value="$(arg min_vel)" />
     <param name="holonomic" value="$(arg holonomic)" />
-    <param name="voice_path"  value="$(arg voice_path)" />
-    <param name="volume"  value="$(arg volume)" />
-    <param name="charge_threshold_higher"  value="$(arg charge_threshold_higher)" />
 </node>
 
 <node name="rotate_server" pkg="fulanghua_waypoints_nav" type="rotate_action_server" output="screen">
     <param name="dist_err" value="$(arg dist_err)"/> 
     <param name="cmd_vel"  value="$(arg cmd_vel)" />
-    <param name="voice_path"  value="$(arg voice_path)" />
-    <param name="volume"  value="$(arg volume)" />
     <param name="Kp"  value="0.5" />
     <param name="rotate_speed" value="2.0" />
-</node>
-  
-<node name="ar_detect_server" pkg="fulanghua_waypoints_nav" type="aruco_detect_server" output="screen">
-    <param name="cmd_vel"  value="$(arg cmd_vel)" />
-    <param name="image_topic" value="$(arg image_topic)"/>
-    <param name="Kp"  value="$(arg Kp)" />
-    <param name="adjust_speed" value="$(arg min_vel)"/>
-    <param name="offset_fixed_x" value="$(arg offset_fixed_x)"/>
-    <param name="offset_fixed_y" value="$(arg offset_fixed_y)"/>
-    <param name="offset_fixed_z" value="$(arg offset_fixed_z)"/>
-    <param name="holonomic" value="$(arg holonomic)" />
-    <param name="calibration_path" value="$(arg calibration_path)/camera_ext.yaml" />
 </node>
 
 <node name="ar_align_server" pkg="fulanghua_waypoints_nav" type="aruco_align_server" output="screen">
@@ -84,7 +65,5 @@
 </node>
 
 <node name="wait_server" pkg="fulanghua_waypoints_nav" type="wait_server" output="screen"></node>
-
-<include file="$(find sound_play)/soundplay_node.launch"></include>
 
 </launch>
