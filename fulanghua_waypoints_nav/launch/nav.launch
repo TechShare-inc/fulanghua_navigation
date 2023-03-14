@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+<arg name="world_frame"       default="map"/>
+<arg name="robot_name"       default="limo"/>
+<arg name="lang"              default="eng"/>
+<arg name="waypoints_file" default="$(find orne_waypoints_editor)/waypoints_cfg/waypoints.yaml"/>
+<arg name="amcl_filename" default="$(find fulanghua_waypoints_nav)/param/initial_pose.yaml"/>
+<arg name="voice_path" default="$(find fulanghua_waypoints_nav)/voice/$(arg lang)/"/>
+<arg name="dist_err"       default="0.8"/>
+<arg name="charge_threshold_lower"       default="10.0"/>
+<arg name="charge_threshold_higher"       default="11.4"/>
+<arg name="cmd_vel"         default="cmd_vel"/>
+<arg name="max_vel"         default="0.4"/>
+<arg name="min_vel"         default="0.1"/>
+<arg name="volume"         default="2.0"/>
+<arg name="Kp"       default="2.0"/> 
+<arg name="offset_fixed_x" default="0.009"/>
+<arg name="offset_fixed_y" default="0.02"/>
+<arg name="offset_fixed_z" default="0.285"/>
+<arg name="holonomic" default="false"/>
+<arg name="image_topic" default="/usb_cam/image_raw"/>
+
+<node name="waypoints_nav" pkg="fulanghua_waypoints_nav" type="waypoints_nav" output="screen">
+  <param name="world_frame" value="$(arg world_frame)"/>
+  <param name="filename" value="$(arg waypoints_file)"/>
+  <param name="amcl_filename" value="$(arg amcl_filename)"/>
+  <param name="cmd_vel"  value="$(arg cmd_vel)" />
+  <param name="robot_name"  value="$(arg robot_name)" />
+</node>
+
+</launch>

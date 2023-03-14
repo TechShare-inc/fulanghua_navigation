@@ -1,0 +1,72 @@
+finish_pose:
+  header:
+    frame_id: null
+    seq: 0
+    stamp: 0.0
+  pose:
+    orientation:
+      w: -0.147272
+      x: 7.90389e-06
+      y: -2.27083e-05
+      z: -0.989098
+    position:
+      x: -1.0267
+      y: -0.196292
+      z: -0.000138497
+waypoints:
+- point:
+    action:
+      a: speak
+      d: 2147483647
+      f: kitchen
+    orientation:
+      w: -0.987191
+      x: 2.93072e-06
+      y: -2.90934e-06
+      z: -0.159551
+    pose:
+      x: -1.79548
+      y: 2.07881
+      z: -0.000264492
+- point:
+    action:
+      a: speak
+      d: 2147483647
+      f: luke_room
+    orientation:
+      w: 0.89561
+      x: 1.72028e-06
+      y: 1.13895e-05
+      z: -0.444845
+    pose:
+      x: 1.78919
+      y: 1.77619
+      z: -0.000262197
+- point:
+    action:
+      a: speak
+      d: 2147483647
+      f: bathroom
+    orientation:
+      w: -0.885148
+      x: -8.01815e-06
+      y: 1.53999e-06
+      z: -0.46531
+    pose:
+      x: 3.46375
+      y: 2.25549
+      z: -0.000258712
+- point:
+    action:
+      a: speak
+      d: 2147483647
+      f: 2nd_floor
+    orientation:
+      w: 0.795155
+      x: -3.55167e-06
+      y: 3.18964e-06
+      z: 0.60642
+    pose:
+      x: 1.20457
+      y: 0.864775
+      z: -0.00026502

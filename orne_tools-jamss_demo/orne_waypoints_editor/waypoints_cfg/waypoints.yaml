@@ -1,0 +1,100 @@
+waypoints:
+    - point:
+        pose:
+            x: 0.404919
+            y: -0.084403
+            z: -0.000242233
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 0
+            y: 0
+            z: 0
+            w: 1
+    - point:
+        pose:
+            x: 0.646878
+            y: 0.567376
+            z: 0.000371605
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 0
+            y: 0
+            z: 0
+            w: 1
+    - point:
+        pose:
+            x: 0.929852
+            y: 1.2267
+            z: -0.000530522
+        action:
+            a: align2
+            d: 2147483647
+            f: none
+        orientation:
+            x: 4.46218e-06
+            y: -2.71865e-06
+            z: 0.999945
+            w: 0.0111308
+    - point:
+        pose:
+            x: -0.642583
+            y: 1.60527
+            z: 0.00414038
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 0
+            y: 0
+            z: 0
+            w: 0
+    - point:
+        pose:
+            x: -0.857816
+            y: 0.997935
+            z: 0.00300074
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 0
+            y: 0
+            z: 0
+            w: 0
+    - point:
+        pose:
+            x: -1.16352
+            y: 0.569084
+            z: 0.00242643
+        action:
+            a: align1
+            d: 2147483647
+            f: none
+        orientation:
+            x: -1.11481e-06
+            y: 4.24603e-06
+            z: -0.0109489
+            w: 0.999943
+finish_pose:
+    header:
+        seq: 0
+        stamp: 0.000000000
+        frame_id: 
+    pose:
+        position:
+            x: 0.648799
+            y: 0.111309
+            z: -2.45842e-05
+        orientation:
+            x: -6.03715e-06
+            y: -8.3654e-06
+            z: 0.32436
+            w: 0.945934

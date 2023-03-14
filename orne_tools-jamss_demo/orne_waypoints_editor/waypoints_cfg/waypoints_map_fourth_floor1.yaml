@@ -1,0 +1,72 @@
+waypoints:
+    - point:
+        pose:
+            x: 1.11953
+            y: 9.0426
+            z: -0.000324618
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 2.93072e-06
+            y: -2.90934e-06
+            z: -0.159551
+            w: -0.98719
+    - point:
+        pose:
+            x: 2.58021
+            y: 13.43
+            z: -6.39047e-05
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: -1.63114e-05
+            y: -7.77322e-06
+            z: -0.425832
+            w: -0.904802
+    - point:
+        pose:
+            x: 5.07068
+            y: 15.9312
+            z: -6.1805e-05
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: -5.29274e-06
+            y: 5.19058e-06
+            z: -0.844999
+            w: -0.534768
+    - point:
+        pose:
+            x: 13.4873
+            y: 24.5493
+            z: 3.28507e-05
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: -6.72668e-06
+            y: -6.01807e-06
+            z: 0.979931
+            w: -0.199339
+finish_pose:
+    header:
+        seq: 0
+        stamp: 0.000000000
+        frame_id: 
+    pose:
+        position:
+            x: -2.01382
+            y: 0.181406
+            z: -0.000164458
+        orientation:
+            x: 2.05432e-05
+            y: -1.18654e-05
+            z: -0.609611
+            w: -0.792702

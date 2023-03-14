@@ -1,0 +1,58 @@
+waypoints:
+    - point:
+        pose:
+            x: 3.51254
+            y: 1.95472
+            z: 8.76495e-05
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 0
+            y: 0
+            z: 0
+            w: 1
+    - point:
+        pose:
+            x: 3.61364
+            y: 1.29473
+            z: 8.78581e-05
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 0
+            y: 0
+            z: 0
+            w: 1
+    - point:
+        pose:
+            x: 4.3813
+            y: 1.19019
+            z: 8.8782e-05
+        action:
+            a: passthrough
+            d: 0
+            f: none
+        orientation:
+            x: 0
+            y: 0
+            z: 0
+            w: 1
+finish_pose:
+    header:
+        seq: 0
+        stamp: 0.000000000
+        frame_id: 
+    pose:
+        position:
+            x: 3.43044
+            y: 3.12282
+            z: 3.62446e-05
+        orientation:
+            x: 1.26811e-07
+            y: 6.0498e-06
+            z: -0.975995
+            w: 0.2178
