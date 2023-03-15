@@ -17,7 +17,6 @@ find_package(catkin REQUIRED COMPONENTS
   fulanghua_srvs
   orne_waypoints_msgs
   tf
-  sound_play
   fulanghua_msg
   fulanghua_srvs
 )

@@ -1,5 +1,5 @@
-#ifndef STATE_TRIGGER_PANEL_H
-#define STATE_TRIGGER_PANEL_H
+#ifndef SAVE_TRIGGER_PANEL_H
+#define SAVE_TRIGGER_PANEL_H
 
 #ifndef Q_MOC_RUN
 # include <ros/ros.h>
@@ -32,4 +32,4 @@ protected:
 
 } // end namespace orne_rviz_plugins
 
-#endif // STATE_TRIGGER_PANEL_H
+#endif // SAVE_TRIGGER_PANEL_H

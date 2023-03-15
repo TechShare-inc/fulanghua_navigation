@@ -6,4 +6,11 @@
         TODO
     </description>
   </class>
+  <class name="orne_rviz_plugins/StateTriggerPanel"
+         type="orne_rviz_plugins::StateTriggerPanel"
+         base_class_type="rviz::Panel">
+    <description>
+        TODO
+    </description>
+  </class>
 </library>

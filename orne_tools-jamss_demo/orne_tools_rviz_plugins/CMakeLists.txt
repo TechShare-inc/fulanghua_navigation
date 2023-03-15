@@ -24,6 +24,7 @@ if(rviz_QT_VERSION VERSION_LESS "5")
 
                     set(SOURCE_FILES
                       src/save_trigger_panel.cpp
+                      src/state_trigger_panel.cpp
                         ${MOC_FILES}
                         )
 
@@ -41,11 +42,5 @@ if(rviz_QT_VERSION VERSION_LESS "5")
                     install(FILES 
                       plugin_description.xml
                         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-
-                    install(DIRECTORY media/
-                      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/media)
-
-                    install(DIRECTORY icons/
-                      DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/icons)
 
 
