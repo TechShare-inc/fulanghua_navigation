@@ -1,3 +1,11 @@
+/******
+v1.1
+・コメントの追加
+
+v1.0
+・もともとのwaypoints_nav.cpp
+******/
+
 /*
  * Software License Agreement (BSD License)
  *
@@ -238,6 +246,11 @@ class WaypointsNavigation {
         }
     }
 
+    /******
+    orne_tools_rviz_pluginsのStartWaypointsNavigationを押すと、
+    start_wp_navというrosserviceがcallされ、
+    以下のstartNavigationCallbackが起動する
+    ******/
     bool startNavigationCallback(std_srvs::Trigger::Request &request,
                                  std_srvs::Trigger::Response &response) {
         if (has_activate_) {
@@ -252,6 +265,10 @@ class WaypointsNavigation {
         private_nh.param("filename", filename, filename);
         if (filename != "") {
             ROS_INFO_STREAM("Read waypoints data from " << filename);
+            /******
+            readFileでwaypoints.yamlなど（passthroughやaligh2などすべてwaypoint）を読み込み、
+            orne_waypoints_msgs::WaypointArray waypoints_にデータが格納される
+            ******/
             if (!readFile(filename)) {
                 ROS_ERROR("Failed loading waypoints file");
             } else {
@@ -271,6 +288,10 @@ class WaypointsNavigation {
             sleep();
         }
 
+        /******
+        キーとなるパラメーターの変更。
+        ずっと回っているrun()内で、実際の動作が行われる。
+        ******/
         current_waypoint_ = waypoints_.poses.begin();
         ROS_WARN("Start!");
         has_activate_ = true;
@@ -447,6 +468,11 @@ class WaypointsNavigation {
         // re.success = true;
     }
 
+    /******
+    waypoints.yamlファイルの読み込み（ファイルパスはrosparamで設定）
+    「 >> 」は本プログラム内で多重定義されている。
+    NEW_YAMLCPPはCMakeLists.txtでadd_definitions(-DNEW_YAMLCPP)とされているので、ifdefはtrueとなる。
+    ******/
     bool readFile(const std::string &filename) {
         waypoints_.poses.clear();
         try {
@@ -727,6 +753,9 @@ class WaypointsNavigation {
         wp_pub_.publish(waypoints_);
     }
 
+    /******
+    メイン処理
+    ******/
     void run() {
         while (ros::ok()) {
             getRobotPosGL();
@@ -762,10 +791,18 @@ class WaypointsNavigation {
                         ROS_INFO_STREAM("current_waypoint_"
                                         << current_waypoint_->position.y);
                     }
+                    /******
+                    move_baseのaction goalをpub
+                    (*current_waypoint_).position.actionの分類によらず、(*current_waypoint_).position.x,y,zには移動する
+                    ******/
                     startNavigationGL(
                         *current_waypoint_);  // Go to the waypoint
                     int resend_goal = 0;
                     double start_nav_time = ros::Time::now().toSec();
+                    /******
+                    move_baseのgoalに到達できないでRobotが止まった場合に5.0sx2でskipする
+                    last_move_time_は最後の/cmd_velが送られたときなので、正確にはRobotが止まった時刻ではない
+                    ******/
                     while (!onNavigationPoint(current_waypoint_->position,
                                               dist_err_)) {
                         if (!has_activate_) throw SwitchRunningStatus();
@@ -791,20 +828,32 @@ class WaypointsNavigation {
                         }
                         sleep();
                     }
+
+                    /******
+                    actionがある場合
+                    ******/
                     // do the action here
                     // call the function that calls service with action code
                     orne_waypoints_msgs::Pose temp_wp;
                     if (actionConfirm(*current_waypoint_)) {
                         while (!navigationFinished() && ros::ok()) sleep();
                         has_activate_ = false;
+                        /******
+                        用意された/actionのgoalをpubし、終了までずっと留まるwhile文
+                        成功すればhas_activate_ = trueになる
+                        ******/
                         actionServiceCall(current_waypoint_);
                     }
 
+                    /******
+                    current_waypointを次に移行させる
+                    ******/
                     if (_reached && REVERSE) {
                         current_waypoint_--;
                     } else {
                         current_waypoint_++;
                     }
+
                     if (has_activate_) {
                         if (current_waypoint_ == finish_pose_ && !REVERSE) {
                             has_activate_ = false;
