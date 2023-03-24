@@ -9,7 +9,7 @@ $ roslaunch orne_waypoints_editor edit_waypoints_viz.launch
 
 
 以下のような amcl + move_base が出来ている状態で
-（https://github.com/TechShare-inc/go1_nav_rplidar_s1）
+（  https://github.com/TechShare-inc/go1_nav_rplidar_s1  ）
 
 https://user-images.githubusercontent.com/106230925/226292479-b589329a-55cc-4851-b8dd-2a9f7761e11d.mp4
 
