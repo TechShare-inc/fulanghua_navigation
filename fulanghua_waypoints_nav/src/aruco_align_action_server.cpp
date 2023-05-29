@@ -145,7 +145,7 @@ class AR_ALIGN {
         Done_x = false;
         ros::Time t_stop;
         double t = (ros::Time::now() - start_time).toSec();
-        threshold_x = 0.002;//0.002;
+        threshold_x = 0.005;//0.002;
 
         // robot(x, y, z) <-> aruco(z, x, y)
         offset_x = z - (double)fixed_x;
@@ -310,11 +310,12 @@ int main(int argc, char **argv) {
                     align.server.setAborted();  // abort it
                 } else {
                     if (done_align){ /*after calibration's done, wait for 20 seconds*/
+                        align.escape();
                         done_align = false;
                         align.server.setSucceeded();
                         ROS_INFO("AR align: Succeeded!");
                         visualize = false;
-                        align.escape();
+                        
                     }else if (!align.src.empty()) {/*if camera iamges are received*/
                         cv::aruco::detectMarkers(
                             align.src, align.dictionary, align.corners,

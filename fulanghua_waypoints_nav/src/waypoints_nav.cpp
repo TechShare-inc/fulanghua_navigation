@@ -39,7 +39,6 @@
 #include <math.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <ros/ros.h>
-#include <sensor_msgs/LaserScan.h>
 #include <std_srvs/Empty.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
@@ -104,8 +103,7 @@ class WaypointsNavigation {
                 ROS_ERROR("Failed loading waypoints file");
             } else {
                 first_waypoint_ = waypoints_.poses.begin();
-                last_waypoint_ = waypoints_.poses.end() - 2;
-                finish_pose_ = waypoints_.poses.end() - 1;
+                last_waypoint_ = waypoints_.poses.end();
                 computeWpOrientation();
             }
             current_waypoint_ = waypoints_.poses.begin();
@@ -135,8 +133,8 @@ class WaypointsNavigation {
             "near_wp_nav", &WaypointsNavigation::searchPoseCallback, this);
         cmd_vel_sub_ = nh.subscribe(cmd_vel_, 1,
                                     &WaypointsNavigation::cmdVelCallback, this);
-        scan_sub_ = nh.subscribe("/scan", 100,
-                                 &WaypointsNavigation::scanCallback, this);
+        stop_sub_ = nh.subscribe("/stop", 100,
+                                 &WaypointsNavigation::stopCallback, this);
         cmd_vel_pub_ = nh.advertise<geometry_msgs::Twist>(cmd_vel_, 100);
         robot_coordinate_pub =
             nh.advertise<geometry_msgs::Point>("robot_coordinate", 100);
@@ -146,6 +144,8 @@ class WaypointsNavigation {
             nh.advertise<orne_waypoints_msgs::WaypointArray>("waypoints", 10);
         clear_costmaps_srv_ =
             nh.serviceClient<std_srvs::Empty>("/move_base/clear_costmaps");
+        clear_unknown_space_srv_ =
+            nh.serviceClient<std_srvs::Empty>("/move_base/clear_unknown_space");
         action_cmd_srv =
             nh.serviceClient<fulanghua_srvs::actions>("/action/start");
         // added below
@@ -164,6 +164,9 @@ class WaypointsNavigation {
             this);
     }
 
+    /*
+    ROS service callbacks for UI on Rvviz
+    */
     bool roundTripOnCallback(std_srvs::Empty::Request &req,
                              std_srvs::Empty::Response &res) {
         ROS_INFO("roundtrip is on");
@@ -201,7 +204,7 @@ class WaypointsNavigation {
         pose.orientation.x = 0;
         pose.orientation.y = 0;
         pose.orientation.z = 0;
-        pose.orientation.w = 0;
+        pose.orientation.w = 1;
         dummy_array.poses.push_back(pose);
         return dummy_array.poses.begin();
     }
@@ -218,24 +221,9 @@ class WaypointsNavigation {
         pose.orientation.x = 0;
         pose.orientation.y = 0;
         pose.orientation.z = 0;
-        pose.orientation.w = 0;
+        pose.orientation.w = 1;
         dummy_array.poses.push_back(pose);
         return dummy_array.poses.begin();
-    }
-
-    void scanCallback(const sensor_msgs::LaserScan &msg) {
-        auto ranges = msg.ranges;
-        int obs_num = 0;
-        for (int i = 0; i < ranges.size(); i++) {
-            if (ranges[i] > 0.05 && ranges[i] < 0.18) {
-                obs_num++;
-            }
-        }
-        if (obs_num > 1) {
-            stop++;
-        } else {
-            stop = 0;
-        }
     }
 
     bool startNavigationCallback(std_srvs::Trigger::Request &request,
@@ -256,8 +244,7 @@ class WaypointsNavigation {
                 ROS_ERROR("Failed loading waypoints file");
             } else {
                 first_waypoint_ = waypoints_.poses.begin();
-                last_waypoint_ = waypoints_.poses.end() - 2;
-                finish_pose_ = waypoints_.poses.end() - 1;
+                last_waypoint_ = waypoints_.poses.end();
                 computeWpOrientation();
             }
             current_waypoint_ = waypoints_.poses.begin();
@@ -323,7 +310,7 @@ class WaypointsNavigation {
         double min_dist = std::numeric_limits<double>::max();
         for (std::vector<orne_waypoints_msgs::Pose>::iterator it =
                  current_waypoint_;
-             it != finish_pose_; it++) {
+             it != last_waypoint_; it++) {
             double dist = hypot(it->position.x - robot_gl.getOrigin().x(),
                                 it->position.y - robot_gl.getOrigin().y());
             if (dist < min_dist) {
@@ -345,7 +332,6 @@ class WaypointsNavigation {
             return false;
         }
 
-        // move_base_action_.cancelAllGoals();
         startNavigationGL(request.pose);
         bool isNavigationFinished = false;
         while (!isNavigationFinished && ros::ok()) {
@@ -379,7 +365,7 @@ class WaypointsNavigation {
         double min_dist = std::numeric_limits<double>::max();
         for (std::vector<orne_waypoints_msgs::Pose>::iterator it =
                  current_waypoint_;
-             it != finish_pose_; it++) {
+             it != last_waypoint_; it++) {
             double dist = hypot(it->position.x - robot_gl.getOrigin().x(),
                                 it->position.y - robot_gl.getOrigin().y());
             if (dist < min_dist) {
@@ -393,6 +379,7 @@ class WaypointsNavigation {
 
         return true;
     }
+
     void callRotateClient() {
         if (rotate_client.isServerConnected()) {
             bool state = true;
@@ -426,7 +413,6 @@ class WaypointsNavigation {
         }
     }
 
-
     void cmdVelCallback(const geometry_msgs::Twist &msg) {
         if (msg.linear.x > -0.001 && msg.linear.x < 0.001 &&
             msg.linear.y > -0.001 && msg.linear.y < 0.001 &&
@@ -434,10 +420,38 @@ class WaypointsNavigation {
             msg.angular.x > -0.001 && msg.angular.x < 0.001 &&
             msg.angular.y > -0.001 && msg.angular.y < 0.001 &&
             msg.angular.z > -0.001 && msg.angular.z < 0.001) {
-            ROS_INFO("command velocity all zero");
+            double time = ros::Time::now().toSec() - last_moved_time_;
+            ROS_INFO("stop time : %lf", time);
         } else {
             last_moved_time_ = ros::Time::now().toSec();
         }
+    }
+
+    void stopCallback(const std_msgs::Bool &stop) {
+        double restart_from = ros::Time::now().toSec() - restart_time;
+        // start stopping when "stop" topic changed to true.
+        if (stop.data && !last_stop) {
+            // check if enough time passed since last stop or not
+            if (!stay_stop && restart_from > 1) {
+                stop_time = ros::Time::now().toSec();
+                stay_stop = true;
+                move_base_action_.cancelAllGoals();  // stop
+            }
+        }
+        if (stay_stop) {
+            double stay_stop_time = ros::Time::now().toSec() - stop_time;
+            ROS_INFO("Stay stopping");
+            if ((stay_stop_time > 2 && !stop.data) || stay_stop_time > 5) {
+                std_srvs::Empty empty;
+                clear_costmaps_srv_.call(empty);
+                clear_unknown_space_srv_.call(empty);
+                startNavigationGL(*current_waypoint_);  // restart
+                stay_stop = false;
+                restart_time = ros::Time::now().toSec();
+                ROS_INFO("Restarted");
+            }
+        }
+        last_stop = stop.data;
     }
 
     bool action_service_stop_callback(std_srvs::Empty::Request &req,
@@ -496,30 +510,6 @@ class WaypointsNavigation {
             } else {
                 return false;
             }
-
-#ifdef NEW_YAMLCPP
-            const YAML::Node &fp_node_tmp = node["finish_pose"];
-            const YAML::Node *fp_node = fp_node_tmp ? &fp_node_tmp : NULL;
-#else
-            const YAML::Node *fp_node = node.FindValue("finish_pose");
-#endif
-
-            if (fp_node != NULL) {
-                (*fp_node)["pose"]["position"]["x"] >> pose.position.x;
-                (*fp_node)["pose"]["position"]["y"] >> pose.position.y;
-                (*fp_node)["pose"]["position"]["z"] >> pose.position.z;
-
-                (*fp_node)["pose"]["orientation"]["x"] >> pose.orientation.x;
-                (*fp_node)["pose"]["orientation"]["y"] >> pose.orientation.y;
-                (*fp_node)["pose"]["orientation"]["z"] >> pose.orientation.z;
-                (*fp_node)["pose"]["orientation"]["w"] >> pose.orientation.w;
-
-                waypoints_.poses.push_back(pose);
-
-            } else {
-                return false;
-            }
-
         } catch (YAML::ParserException &e) {
             return false;
 
@@ -533,7 +523,7 @@ class WaypointsNavigation {
     void computeWpOrientation() {
         for (std::vector<orne_waypoints_msgs::Pose>::iterator it =
                  waypoints_.poses.begin();
-             it != finish_pose_; it++) {
+             it != last_waypoint_; it++) {
             if (it->position.action == "passthrough") {
                 double goal_direction =
                     atan2((it + 1)->position.y - (it)->position.y,
@@ -544,9 +534,10 @@ class WaypointsNavigation {
         }
         waypoints_.header.frame_id = world_frame_;
     }
-    
+
     void computeWpOrientationReverse() {
-        for (std::vector<orne_waypoints_msgs::Pose>::iterator it = finish_pose_;
+        for (std::vector<orne_waypoints_msgs::Pose>::iterator it =
+                 last_waypoint_;
              it != waypoints_.poses.begin(); it--) {
             if (it->position.action == "passthrough") {
                 double goal_direction =
@@ -618,17 +609,6 @@ class WaypointsNavigation {
         publishPoseArray();
         current_waypoint_pub.publish(
             *current_waypoint_);  // publish next waypoint to central server
-        if (stop == 1) {
-            ros::Time t_stop = ros::Time::now();
-            while ((ros::Time::now() - t_stop).toSec() < 3) {
-                geometry_msgs::Twist twist;
-                twist.linear.x = 0;
-                twist.angular.z = 0;
-                cmd_vel_pub_.publish(twist);
-                ROS_INFO("stopped to avoid collision for %lf seconds",
-                         (ros::Time::now() - t_stop).toSec());
-            }
-        }
     }
 
     void actionServiceCall(
@@ -741,29 +721,21 @@ class WaypointsNavigation {
                     }
 
                     // ROS_INFOs
-                    if (current_waypoint_ == last_waypoint_ && !REVERSE) {
-                        ROS_INFO("prepare finish pose");
-                    } else if (current_waypoint_ == first_waypoint_ + 1 &&
-                               REVERSE && _reached) {
-                        ROS_INFO("prepare finish pose");
+                    ROS_INFO("calculate waypoint direction");
+                    ROS_INFO_STREAM(
+                        "goal_direction = " << current_waypoint_->orientation);
+                    if (REVERSE && _reached) {
+                        ROS_INFO_STREAM("current_waypoint_-1 "
+                                        << (current_waypoint_ - 1)->position.y);
                     } else {
-                        ROS_INFO("calculate waypoint direction");
-                        ROS_INFO_STREAM("goal_direction = "
-                                        << current_waypoint_->orientation);
-                        if (REVERSE && _reached) {
-                            ROS_INFO_STREAM(
-                                "current_waypoint_-1 "
-                                << (current_waypoint_ - 1)->position.y);
-                        } else {
-                            ROS_INFO_STREAM(
-                                "current_waypoint_+1 "
-                                << (current_waypoint_ + 1)->position.y);
-                        }
-                        ROS_INFO_STREAM("current_waypoint_"
-                                        << current_waypoint_->position.y);
+                        ROS_INFO_STREAM("current_waypoint_+1 "
+                                        << (current_waypoint_ + 1)->position.y);
                     }
-                    startNavigationGL(
-                        *current_waypoint_);  // Go to the waypoint
+                    ROS_INFO_STREAM("current_waypoint_"
+                                    << current_waypoint_->position.y);
+
+                    // Go to the waypoint
+                    startNavigationGL(*current_waypoint_);
                     int resend_goal = 0;
                     double start_nav_time = ros::Time::now().toSec();
                     while (!onNavigationPoint(current_waypoint_->position,
@@ -771,23 +743,25 @@ class WaypointsNavigation {
                         if (!has_activate_) throw SwitchRunningStatus();
 
                         double time = ros::Time::now().toSec();
-                        if (time - start_nav_time > 5.0 &&
-                            time - last_moved_time_ > 5.0) {
-                            ROS_WARN("Resend the navigation goal.");
-                            std_srvs::Empty empty;
-                            clear_costmaps_srv_.call(empty);
-                            startNavigationGL(*current_waypoint_);
-                            resend_goal++;
-                            if (resend_goal == 3) {
-                                ROS_WARN("Skip waypoint.");
-                                actionServiceCall(makeQueue("skip"));
-                                if (REVERSE && _reached)
-                                    current_waypoint_--;
-                                else
-                                    current_waypoint_++;
-                                startNavigationGL(*current_waypoint_);
-                            }
-                            start_nav_time = time;
+                        if (time - start_nav_time > 3.0 &&
+                            time - last_moved_time_ > 3.0 && !stay_stop) {
+                            // move_base_action_.cancelAllGoals();
+                            // ROS_WARN("Resend the navigation goal.");
+                            // std_srvs::Empty empty;
+                            // clear_costmaps_srv_.call(empty);
+                            // clear_unknown_space_srv_.call(empty);
+                            // startNavigationGL(*current_waypoint_);
+                            // resend_goal++;
+                            // if (resend_goal == 5) {
+                            //     ROS_WARN("Skip waypoint.");
+                            //     actionServiceCall(makeQueue("skip"));
+                            //     if (REVERSE && _reached)
+                            //         current_waypoint_--;
+                            //     else
+                            //         current_waypoint_++;
+                            //     startNavigationGL(*current_waypoint_);
+                            // }
+                            // start_nav_time = time;
                         }
                         sleep();
                     }
@@ -800,13 +774,15 @@ class WaypointsNavigation {
                         actionServiceCall(current_waypoint_);
                     }
 
+                    // go to the next waypoint
                     if (_reached && REVERSE) {
                         current_waypoint_--;
                     } else {
                         current_waypoint_++;
                     }
+
                     if (has_activate_) {
-                        if (current_waypoint_ == finish_pose_ && !REVERSE) {
+                        if (current_waypoint_ == last_waypoint_ && !REVERSE) {
                             has_activate_ = false;
                             if (LOOP) {
                                 ROS_INFO_STREAM("LOOP start!");
@@ -817,7 +793,7 @@ class WaypointsNavigation {
                             } else {
                                 actionServiceCall(makeQueue("finish"));
                             }
-                        } else if (current_waypoint_ == finish_pose_ &&
+                        } else if (current_waypoint_ == last_waypoint_ &&
                                    REVERSE) {
                             ROS_INFO_STREAM("REVERSE start!");
                             actionServiceCall(makeQueue("reverse"));
@@ -862,7 +838,6 @@ class WaypointsNavigation {
     std::vector<orne_waypoints_msgs::Pose>::iterator current_waypoint_;
     std::vector<orne_waypoints_msgs::Pose>::iterator last_waypoint_;
     std::vector<orne_waypoints_msgs::Pose>::iterator first_waypoint_;
-    std::vector<orne_waypoints_msgs::Pose>::iterator finish_pose_;
     std_srvs::Empty::Request req;
     std_srvs::Empty::Response res;
     bool has_activate_;
@@ -874,18 +849,20 @@ class WaypointsNavigation {
         stop_server_, suspend_server_, resume_server_, search_server_,
         loop_start_server, loop_stop_server, roundtrip_on_server_,
         roundtrip_off_server_, command_server;
-    ros::Subscriber cmd_vel_sub_, scan_sub_;
+    ros::Subscriber cmd_vel_sub_, stop_sub_;
     ros::Publisher wp_pub_, cmd_vel_pub_, robot_coordinate_pub,
         current_waypoint_pub;
-    ros::ServiceClient clear_costmaps_srv_, action_cmd_srv;
-    double last_moved_time_, dist_err_;
+    ros::ServiceClient clear_costmaps_srv_, clear_unknown_space_srv_,
+        action_cmd_srv;
+    double last_moved_time_, dist_err_, stop_time, restart_time;
     int failed_counter = 0;
     bool LOOP = false;
     bool REVERSE = false;
     bool action_finished = false;
     bool _reached = false;
     bool _initial = true;
-    int stop = 0;
+    bool last_stop;
+    bool stay_stop = false;
 };
 
 int main(int argc, char *argv[]) {
