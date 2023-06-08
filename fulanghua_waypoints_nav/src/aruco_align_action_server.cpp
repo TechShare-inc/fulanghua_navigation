@@ -171,7 +171,8 @@ class AR_ALIGN {
         if (Done_x) {
             // Done_z = false;
             // move it to the center
-            wait();
+            
+            // wait();
             ROS_INFO("aligmnent is done!");
             double angle = 0;
             offset_I = 0;
@@ -293,6 +294,7 @@ int main(int argc, char **argv) {
         if (align.server.isNewGoalAvailable()) {
             align.current_goal = align.server.acceptNewGoal();
             align.start_time = ros::Time::now();
+            t = ros::Time::now();
             align._counter = 0;
             visualize = true;
             align.Done_z = false;
@@ -309,7 +311,7 @@ int main(int argc, char **argv) {
                     ros::Time::now()) {
                     align.server.setAborted();  // abort it
                 } else {
-                    if (done_align){ /*after calibration's done, wait for 20 seconds*/
+                    if (done_align){
                         align.escape();
                         done_align = false;
                         align.server.setSucceeded();
