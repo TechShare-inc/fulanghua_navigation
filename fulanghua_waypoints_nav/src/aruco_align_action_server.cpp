@@ -171,7 +171,7 @@ class AR_ALIGN {
         if (Done_x) {
             // Done_z = false;
             // move it to the center
-            
+
             // wait();
             ROS_INFO("aligmnent is done!");
             double angle = 0;
@@ -348,11 +348,11 @@ int main(int argc, char **argv) {
                             double t_preempt = (ros::Time::now() - t).toSec();
                             ROS_INFO("Cannot see the marker for %lf seconds",
                                      t_preempt);
-                            if (t_preempt > 3) {
-                                visualize = false;
-                                align.server.setAborted();  // cancel the goal
-                                ROS_WARN("AR align: aborted Goal\n");
-                            }
+                            // if (t_preempt > 3) {
+                            //     visualize = false;
+                            //     align.server.setAborted();  // cancel the goal
+                            //     ROS_WARN("AR align: aborted Goal\n");
+                            // }
                         }
                         t_start_wait = ros::Time::now();
                         cv::imshow("src", align.src);
