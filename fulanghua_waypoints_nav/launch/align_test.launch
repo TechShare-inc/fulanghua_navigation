@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<launch>
+<arg name="world_frame"       default="map"/>
+<arg name="robot_name"       default="limo"/>
+<arg name="lang"              default="eng"/>
+<arg name="waypoints_file" default="$(find orne_waypoints_editor)/waypoints_cfg/waypoints.yaml"/>
+<arg name="amcl_filename" default="$(find fulanghua_waypoints_nav)/param/initial_pose.yaml"/>
+<arg name="voice_path" default="$(find fulanghua_waypoints_nav)/voice/$(arg lang)/"/>
+<arg name="dist_err"       default="0.8"/>
+<arg name="charge_threshold_lower"       default="10.0"/>
+<arg name="charge_threshold_higher"       default="11.4"/>
+<arg name="cmd_vel"         default="cmd_vel"/>
+<arg name="max_vel"         default="0.4"/>
+<arg name="min_vel"         default="0.1"/>
+<arg name="volume"         default="2.0"/>
+<arg name="Kp"       default="2.0"/> 
+<arg name="offset_fixed_x" default="0.009"/>
+<arg name="offset_fixed_y" default="0.03"/>
+<arg name="offset_fixed_z" default="0.285"/>
+<arg name="holonomic" default="false"/>
+<arg name="image_topic" default="/usb_cam/image_raw"/>
+<arg name="calibration_path" default="$(find camera_pkg)/param"/> 
+
+<node pkg="uvc_camera" type="uvc_camera_node" name="uvc_camera2" output="screen">
+    <param name="width" type="int" value="640" />
+    <param name="height" type="int" value="480" />
+    <param name="fps" type="int" value="30" />
+    <param name="frame" type="string" value="wide_stereo" />
+
+    <param name="auto_focus" type="bool" value="False" />
+    <param name="focus_absolute" type="int" value="0" />
+    <!-- other supported params: auto_exposure, exposure_absolute, brightness, power_line_frequency -->
+
+    <param name="device" type="string" value="/dev/video0" />
+    <param name="camera_info_url" type="string" value="file://$(arg calibration_path)/camera.yaml" />
+    <remap from="/image_raw" to="/usb_cam/image_raw" />
+</node>
+  
+<node name="align_test" pkg="fulanghua_waypoints_nav" type="align_test" output="screen">
+    <param name="robot_name" value="$(arg robot_name)"/>
+    <param name="dist_err" value="$(arg dist_err)"/> 
+    <param name="cmd_vel"  value="$(arg cmd_vel)" />
+    <param name="max_vel"  value="$(arg max_vel)" />
+    <param name="min_vel"  value="$(arg min_vel)" />
+    <param name="holonomic" value="$(arg holonomic)" />
+</node>
+
+<node name="rotate_server" pkg="fulanghua_waypoints_nav" type="rotate_action_server" output="screen">
+    <param name="dist_err" value="$(arg dist_err)"/> 
+    <param name="cmd_vel"  value="$(arg cmd_vel)" />
+    <param name="Kp"  value="0.5" />
+    <param name="rotate_speed" value="2.0" />
+</node>
+
+<node name="ar_align_server" pkg="fulanghua_waypoints_nav" type="aruco_align_server" output="screen">
+    <param name="cmd_vel"  value="$(arg cmd_vel)" />
+    <param name="image_topic" value="$(arg image_topic)"/>
+    <param name="Kp"  value="0.30" />
+    <param name="Ki" value="0.00025" />
+    <param name="Kpang" value="2.7" />
+    <param name="adjust_speed" value="$(arg min_vel)"/>
+    <param name="offset_fixed_x" value="0.47"/>
+    <param name="offset_fixed_y" value="-0.07"/>
+    <param name="offset_fixed_z" value="$(arg offset_fixed_z)"/>
+    <param name="calibration_path" value="$(arg calibration_path)/camera_ext.yaml" />
+</node>
+
+<node pkg="tsac_avoider" type="collision_stop" name="collision_stop" output="screen">
+    <param name="stop_area_depth" value="0.3" />
+    <param name="stop_area_width" value="0.2" />
+    <param name="alert_dist" value="0.4" />
+    <param name="max_approaching_speed" value="0.10" />
+    <param name="dispersion" value="0.01" />
+</node>
+
+<node name="wait_server" pkg="fulanghua_waypoints_nav" type="wait_server" output="screen"></node>
+
+</launch>

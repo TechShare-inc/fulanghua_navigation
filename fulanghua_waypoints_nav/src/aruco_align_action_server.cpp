@@ -312,7 +312,7 @@ int main(int argc, char **argv) {
                     align.server.setAborted();  // abort it
                 } else {
                     if (done_align){
-                        align.escape();
+                        //align.escape();
                         done_align = false;
                         align.server.setSucceeded();
                         ROS_INFO("AR align: Succeeded!");

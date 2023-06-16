@@ -48,6 +48,7 @@ include_directories(
 add_executable(waypoints_saver src/waypoints_saver.cpp)
 add_executable(waypoints_nav src/waypoints_nav.cpp)
 add_executable(adv_action_server src/adv_action_server.cpp)
+add_executable(align_test src/align_test.cpp)
 add_executable(rotate_action_server src/rotate_action_server.cpp)
 add_executable(wait_server src/wait_server.cpp)
 # add_executable(go1_cmd_server src/go1_high_command.cpp)
@@ -58,7 +59,7 @@ target_compile_options(aruco_align_server PRIVATE ${OpenMP_FLAGS})
 
 add_dependencies(aruco_align_server ${catkin_EXPORTED_TARGETS})
 add_dependencies(adv_action_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(align_test ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 
 target_link_libraries(waypoints_saver
@@ -74,6 +75,9 @@ target_link_libraries(waypoints_nav
 
 
 target_link_libraries(adv_action_server
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(align_test
   ${catkin_LIBRARIES}
 )
 target_link_libraries(rotate_action_server
