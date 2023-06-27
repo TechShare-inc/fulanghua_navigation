@@ -312,12 +312,11 @@ int main(int argc, char **argv) {
                     align.server.setAborted();  // abort it
                 } else {
                     if (done_align){
+                        ROS_INFO("AR align: Succeeded!");
+                        align.server.setSucceeded();
                         //align.escape();
                         done_align = false;
-                        align.server.setSucceeded();
-                        ROS_INFO("AR align: Succeeded!");
                         visualize = false;
-                        
                     }else if (!align.src.empty()) {/*if camera iamges are received*/
                         cv::aruco::detectMarkers(
                             align.src, align.dictionary, align.corners,
