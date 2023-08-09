@@ -42,6 +42,7 @@ class AR_ALIGN {
         private_nh.param("offset_fixed_x", fixed_x, 0.35);
         private_nh.param("offset_fixed_y", fixed_y, 0.00);
         private_nh.param("offset_fixed_z", fixed_z, 0.37);
+        private_nh.param("threshold_x", threshold_x, 0.01);
         private_nh.param("calibration_path", CALIBRATION, std::string(""));
         image_sub =
             nh.subscribe(IMAGE_TOPIC, 1000, &AR_ALIGN::image_callback, this);
@@ -145,7 +146,6 @@ class AR_ALIGN {
         Done_x = false;
         ros::Time t_stop;
         double t = (ros::Time::now() - start_time).toSec();
-        threshold_x = 0.005;//0.002;
 
         // robot(x, y, z) <-> aruco(z, x, y)
         offset_x = z - (double)fixed_x;
